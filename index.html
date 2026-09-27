@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Claude ищет, где полежать · Астана</title>
+<meta name="theme-color" content="#05070B">
+<meta property="og:title" content="Claude ищет, где полежать">
+<meta property="og:description" content="Живая визуализация поиска коворкингов и компьютерных клубов в Астане">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{--bg:#05070B;--ink:#E9F1F7;--dim:#7C8A99;--cw:#5EEAD4;--cc:#F472B6;--ps:#FBBF24;--ak:#A78BFA;--gold:#FFD66B;--air:#60A5FA;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;--disp:"Unbounded",ui-sans-serif,system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;font:14px/1.45 var(--mono);-webkit-font-smoothing:antialiased}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+.hud{position:fixed;inset:0;pointer-events:none;padding:max(16px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));display:grid;grid-template-rows:auto 1fr auto;gap:12px}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.brand .k{font:600 11px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+.brand h1{margin:6px 0 0;font:700 clamp(20px,3.2vw,34px)/1.05 var(--disp);letter-spacing:-.02em}
+.brand h1 span{background:linear-gradient(90deg,var(--cw),var(--cc) 55%,var(--ps));-webkit-background-clip:text;background-clip:text;color:transparent}
+.clock{text-align:right}
+.clock .t{font:700 clamp(22px,3vw,34px)/1 var(--disp);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.clock .s{color:var(--dim);font-size:12px;margin-top:6px}
+.clock .s b{color:var(--ink);font-weight:600}
+.mid{display:flex;justify-content:flex-end;align-items:flex-end}
+.log{width:min(460px,92vw);max-height:46vh;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;font-size:12.5px;mask-image:linear-gradient(transparent,#000 30%);-webkit-mask-image:linear-gradient(transparent,#000 30%)}
+.log div{color:var(--dim);white-space:pre-wrap;transition:color 2s}
+.log div.new{color:var(--ink)}
+.log div i{font-style:normal;color:var(--cw)}
+.bot{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+.stat .n{font:700 clamp(20px,2.6vw,30px)/1 var(--disp);font-variant-numeric:tabular-nums}
+.stat .l{color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:5px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--dim);font-size:11.5px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;box-shadow:0 0 10px currentColor}
+.btns{pointer-events:auto;display:flex;gap:8px}
+.btns button{font:600 12px var(--mono);color:var(--ink);background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 13px;cursor:pointer;backdrop-filter:blur(8px)}
+.btns button:hover{background:rgba(255,255,255,.12)}
+.card{position:fixed;pointer-events:none;min-width:220px;max-width:280px;padding:11px 13px;border-radius:14px;background:rgba(8,12,18,.78);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transform:translateY(6px);transition:opacity .35s,transform .35s;font-size:12px}
+.card.on{opacity:1;transform:none}
+.card .nm{font:600 13.5px/1.25 var(--disp);letter-spacing:-.01em;margin-bottom:4px}
+.card .row{color:var(--dim)}
+.card .v{margin-top:6px;font-weight:600}
+.v.ok{color:var(--cw)}.v.no{color:#FF7B7B}.v.gold{color:var(--gold)}
+.topbox{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.98);width:min(560px,92vw);padding:22px 22px 18px;border-radius:22px;background:rgba(6,9,14,.84);border:1px solid rgba(255,214,107,.35);box-shadow:0 0 60px -10px rgba(255,214,107,.35);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);opacity:0;transition:opacity .6s,transform .6s;pointer-events:none}
+.topbox.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.topbox .k{color:var(--gold);font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+.topbox h2{margin:6px 0 10px;font:700 clamp(18px,2.6vw,26px)/1.1 var(--disp)}
+.topbox .p{color:var(--dim);font-size:13px}
+.topbox .price{color:var(--ink);font-weight:600}
+.boot{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--dim);font-size:13px;letter-spacing:.1em}
+@media (max-width:640px){.log{max-height:30vh;font-size:11.5px}.legend{display:none}}
+@media (prefers-reduced-motion:reduce){.card,.topbox{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="boot" id="boot">сканирую 2GIS…</div>
+<div class="hud">
+  <div class="top">
+    <div class="brand"><div class="k">live · 2GIS · Астана</div><h1>Claude ищет, <span>где полежать</span></h1></div>
+    <div class="clock"><div class="t" id="clock">--:--:--</div><div class="s">до выезда в аэропорт (22:00) <b id="cd1">—</b></div><div class="s">вылет DV817 в 00:05 · <b id="cd2">—</b></div></div>
+  </div>
+  <div class="mid"><div class="log" id="log"></div></div>
+  <div class="bot">
+    <div>
+      <div class="stats">
+        <div class="stat"><div class="n" id="s-all">0</div><div class="l">мест найдено</div></div>
+        <div class="stat"><div class="n" id="s-open">0</div><div class="l">открыты до 21+</div></div>
+        <div class="stat"><div class="n" id="s-sofa">0</div><div class="l">с диваном</div></div>
+        <div class="stat"><div class="n" id="s-top">0</div><div class="l">в топе</div></div>
+      </div>
+      <div class="legend" style="margin-top:10px"><span><i style="color:var(--cw);background:var(--cw)"></i>коворкинги</span><span><i style="color:var(--cc);background:var(--cc)"></i>компьютерные клубы</span><span><i style="color:var(--ps);background:var(--ps)"></i>PlayStation</span><span><i style="color:var(--ak);background:var(--ak)"></i>антикафе</span><span><i style="color:var(--gold);background:var(--gold)"></i>топ</span></div>
+    </div>
+    <div class="btns"><button type="button" id="fs">⛶ на весь экран</button><button type="button" id="snd">звук: выкл</button></div>
+  </div>
+</div>
+<div class="card" id="card"></div>
+<div class="topbox" id="topbox"></div>
+
+<script>
+const C=document.getElementById('c'), X=C.getContext('2d');
+let W,H,DPR, PLACES=[], PROG={log:[],top:[],sofa:[]}, seenLog=0, BB=null, CEN={x:0,y:0};
+const COL={cw:'#5EEAD4',cc:'#F472B6',ps:'#FBBF24',ak:'#A78BFA'};
+const AIR={lat:51.0222,lon:71.4669};
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function hexA(h,a){ const n=parseInt(h.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${Math.max(0,Math.min(1,a)).toFixed(3)})`; }
+function resize(){ DPR=Math.min(2,devicePixelRatio||1); W=innerWidth; H=innerHeight; C.width=W*DPR; C.height=H*DPR; X.setTransform(DPR,0,0,DPR,0,0); X.fillStyle='#05070B'; X.fillRect(0,0,W,H); project(); }
+function project(){
+  if(!PLACES.length) return;
+  const lats=PLACES.map(p=>p.lat).concat([AIR.lat]), lons=PLACES.map(p=>p.lon).concat([AIR.lon]);
+  const la0=Math.min(...lats), la1=Math.max(...lats), lo0=Math.min(...lons), lo1=Math.max(...lons);
+  const kx=Math.cos(51.13*Math.PI/180), sx=(lo1-lo0)*kx, sy=la1-la0;
+  const padX=W<700?22:W*.07, padT=W<700?118:108, padB=W<700?210:128;
+  const sc=Math.min((W-2*padX)/sx,(H-padT-padB)/sy);
+  const ox=(W-sx*sc)/2, oy=padT+((H-padT-padB)-sy*sc)/2;
+  BB={sc,f:(lat,lon)=>[ox+(lon-lo0)*kx*sc, oy+(la1-lat)*sc]};
+  PLACES.forEach(p=>{ [p.x,p.y]=BB.f(p.lat,p.lon); });
+  [AIR.x,AIR.y]=BB.f(AIR.lat,AIR.lon);
+  const open=PLACES.filter(p=>p.lat>51.08);
+  CEN={x:open.reduce((s,p)=>s+p.x,0)/open.length, y:open.reduce((s,p)=>s+p.y,0)/open.length};
+}
+const STARS=Array.from({length:170},()=>({x:Math.random(),y:Math.random(),r:Math.random()*1.2+.2,t:Math.random()*6.28}));
+let focus={x:0,y:0,tx:0,ty:0};
+const card=document.getElementById('card');
+function verdict(p){
+  if(p.top) return ['gold','★ в топе'];
+  if(p.sofa) return ['ok','есть где полежать'];
+  if(!p.open) return ['no', p.hours==='закрыто'?'сегодня закрыто':'закроется раньше 21:00'];
+  return ['ok','открыто до '+p.close];
+}
+function pickNext(){
+  const special=PLACES.filter(p=>p.top||p.sofa);
+  const pool = special.length && Math.random()<.4 ? special : PLACES;
+  const p = pool[Math.floor(Math.random()*pool.length)];
+  focus.tx=p.x; focus.ty=p.y; p.hit=1;
+  const v=verdict(p);
+  card.innerHTML=`<div class="nm">${esc(p.name)}</div><div class="row">${esc(p.catName)} · ★ ${p.rating||'—'} (${p.nrev||0})</div><div class="row">${esc(p.addr||'')}</div><div class="row">сегодня: ${esc(p.hours||'?')}</div><div class="v ${v[0]}">${v[1]}</div>`;
+  card.classList.remove('on');
+  setTimeout(()=>{ const x=Math.min(W-290,Math.max(12,p.x+20)), y=Math.min(H-160,Math.max(96,p.y-24)); card.style.left=x+'px'; card.style.top=y+'px'; card.classList.add('on'); tick(); },650);
+}
+let AC=null, sound=false;
+function tick(){ if(!sound||!AC) return; const o=AC.createOscillator(), g=AC.createGain(); o.type='sine'; o.frequency.value=520+Math.random()*520; g.gain.value=.0001; g.gain.exponentialRampToValueAtTime(.045,AC.currentTime+.01); g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.4); o.connect(g).connect(AC.destination); o.start(); o.stop(AC.currentTime+.45); }
+document.getElementById('snd').addEventListener('click',e=>{ sound=!sound; if(sound&&!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(_){sound=false;} } e.currentTarget.textContent='звук: '+(sound?'вкл':'выкл'); });
+document.getElementById('fs').addEventListener('click',async()=>{ try{ const el=document.documentElement; if(!document.fullscreenElement){ await (el.requestFullscreen?el.requestFullscreen():el.webkitRequestFullscreen()); } else await document.exitFullscreen(); }catch(_){} try{ if('wakeLock' in navigator) await navigator.wakeLock.request('screen'); }catch(_){} });
+
+let sweep=0, last=performance.now(), nextPick=0, pings=[];
+function frame(now){
+  const dt=Math.min(64,now-last); last=now;
+  X.globalCompositeOperation='source-over';
+  X.fillStyle='rgba(5,7,11,.30)'; X.fillRect(0,0,W,H);
+  for(const s of STARS){ s.t+=dt*.0012; X.fillStyle=`rgba(200,220,255,${.12+.25*Math.sin(s.t)**2})`; X.fillRect(s.x*W,s.y*H,s.r,s.r); }
+  if(PLACES.length&&BB){
+    X.strokeStyle='rgba(120,160,200,.07)'; X.lineWidth=1;
+    for(let r=1;r<=6;r++){ X.beginPath(); X.arc(CEN.x,CEN.y,r*BB.sc*0.018,0,6.283); X.stroke(); }
+    const mx=(CEN.x+AIR.x)/2+90, my=(CEN.y+AIR.y)/2;
+    X.setLineDash([3,7]); X.strokeStyle='rgba(96,165,250,.35)'; X.beginPath(); X.moveTo(CEN.x,CEN.y); X.quadraticCurveTo(mx,my,AIR.x,AIR.y); X.stroke(); X.setLineDash([]);
+    const tt=(now/9000)%1, bx=(1-tt)**2*CEN.x+2*(1-tt)*tt*mx+tt*tt*AIR.x, by=(1-tt)**2*CEN.y+2*(1-tt)*tt*my+tt*tt*AIR.y;
+    X.fillStyle='#60A5FA'; X.beginPath(); X.arc(bx,by,2.6,0,6.283); X.fill();
+    X.beginPath(); X.arc(AIR.x,AIR.y,6,0,6.283); X.fill();
+    X.font='600 12px "JetBrains Mono",monospace'; X.fillStyle='rgba(160,200,255,.9)'; X.fillText('✈ NQZ · 00:05',AIR.x+12,AIR.y+4);
+    if(!reduce) sweep=(sweep+dt*0.00055)%(Math.PI*2);
+    const R=Math.hypot(W,H);
+    if(X.createConicGradient){ const g=X.createConicGradient(sweep-0.9,CEN.x,CEN.y); g.addColorStop(0,'rgba(94,234,212,0)'); g.addColorStop(0.13,'rgba(94,234,212,.10)'); g.addColorStop(0.1432,'rgba(94,234,212,0)'); g.addColorStop(1,'rgba(94,234,212,0)'); X.fillStyle=g; X.beginPath(); X.moveTo(CEN.x,CEN.y); X.arc(CEN.x,CEN.y,R,sweep-0.9,sweep); X.closePath(); X.fill(); }
+    X.globalCompositeOperation='lighter';
+    for(const p of PLACES){
+      let a=Math.atan2(p.y-CEN.y,p.x-CEN.x); if(a<0) a+=Math.PI*2;
+      const d=(sweep-a+Math.PI*4)%(Math.PI*2); if(d<0.05 && !p.sw){ p.hit=Math.max(p.hit||0,.85); p.sw=true; } if(d>0.5) p.sw=false;
+      p.hit=(p.hit||0)*Math.pow(0.9985,dt);
+      const b=Math.min(1,(p.open?.55:.14)+p.hit);
+      const col=p.top?'#FFD66B':COL[p.cat]||'#fff';
+      const r=(p.top?4.4:p.sofa?3.4:2.3)*(1+p.hit*.8);
+      const grd=X.createRadialGradient(p.x,p.y,0,p.x,p.y,r*6); grd.addColorStop(0,hexA(col,.5*b)); grd.addColorStop(1,hexA(col,0));
+      X.fillStyle=grd; X.beginPath(); X.arc(p.x,p.y,r*6,0,6.283); X.fill();
+      X.fillStyle=hexA(col,b); X.beginPath(); X.arc(p.x,p.y,r,0,6.283); X.fill();
+      if(p.top){ const o=now/700+p.phase; X.strokeStyle=hexA('#FFD66B',.55); X.lineWidth=1.2; X.beginPath(); X.arc(p.x,p.y,11+2*Math.sin(o),0,6.283); X.stroke(); for(let k=0;k<3;k++){ const aa=o+k*2.094; X.fillStyle=hexA('#FFD66B',.9); X.beginPath(); X.arc(p.x+Math.cos(aa)*15,p.y+Math.sin(aa)*15,1.4,0,6.283); X.fill(); } }
+    }
+    focus.x+=(focus.tx-focus.x)*Math.min(1,dt*.006); focus.y+=(focus.ty-focus.y)*Math.min(1,dt*.006);
+    X.strokeStyle='rgba(233,241,247,.5)'; X.lineWidth=1;
+    X.beginPath(); X.moveTo(CEN.x,CEN.y); X.lineTo(focus.x,focus.y); X.stroke();
+    const fr=14+3*Math.sin(now/180); X.beginPath(); X.arc(focus.x,focus.y,fr,0,6.283); X.stroke();
+    X.beginPath(); X.moveTo(focus.x-fr-6,focus.y); X.lineTo(focus.x-fr+2,focus.y); X.moveTo(focus.x+fr-2,focus.y); X.lineTo(focus.x+fr+6,focus.y); X.moveTo(focus.x,focus.y-fr-6); X.lineTo(focus.x,focus.y-fr+2); X.moveTo(focus.x,focus.y+fr-2); X.lineTo(focus.x,focus.y+fr+6); X.stroke();
+    if(Math.random()<dt*0.0007){ const p=PLACES[Math.floor(Math.random()*PLACES.length)]; pings.push({x:p.x,y:p.y,t:0,c:p.top?'#FFD66B':COL[p.cat]}); }
+    pings=pings.filter(k=>k.t<1); for(const k of pings){ k.t+=dt/1600; X.strokeStyle=hexA(k.c,.5*(1-k.t)); X.lineWidth=1.2; X.beginPath(); X.arc(k.x,k.y,4+k.t*42,0,6.283); X.stroke(); }
+    X.globalCompositeOperation='source-over';
+    if(now>nextPick){ pickNext(); nextPick=now+(reduce?6000:2600); }
+  }
+  requestAnimationFrame(frame);
+}
+function astanaNow(){ const d=new Date(); return new Date(d.getTime()+(d.getTimezoneOffset()+300)*60000); }
+function fmt(ms){ if(ms<=0) return '00:00:00'; const s=Math.floor(ms/1000); return [Math.floor(s/3600),Math.floor(s/60)%60,s%60].map(v=>String(v).padStart(2,'0')).join(':'); }
+function clock(){ const a=astanaNow(); document.getElementById('clock').textContent=a.toTimeString().slice(0,8);
+  const leave=new Date(a); leave.setHours(22,0,0,0); const fly=new Date(a); fly.setHours(24,5,0,0);
+  document.getElementById('cd1').textContent=fmt(leave-a); document.getElementById('cd2').textContent=fmt(fly-a); }
+setInterval(clock,1000); clock();
+const logEl=document.getElementById('log');
+function pushLog(l){ const d=document.createElement('div'); d.className='new'; d.innerHTML=`<i>${esc(l.t||'')}</i> ${esc(l.m)}`; logEl.appendChild(d); while(logEl.children.length>40) logEl.removeChild(logEl.firstChild); setTimeout(()=>d.classList.remove('new'),5000); }
+let typing=Promise.resolve();
+function queueLog(lines){ for(const l of lines){ typing=typing.then(()=>new Promise(res=>{ pushLog(l); setTimeout(res,reduce?60:800); })); } }
+const topbox=document.getElementById('topbox'); let topIdx=0;
+function showTop(){ const T=PROG.top||[]; if(!T.length) return; const i=topIdx%T.length; const t=T[i]; topIdx++;
+  topbox.innerHTML=`<div class="k">топ ${i+1} из ${T.length}</div><h2>${esc(t.name)}</h2><div class="p">${esc(t.why||'')}</div><div class="p" style="margin-top:8px"><span class="price">${esc(t.price||'')}</span>${t.hours?' · '+esc(t.hours):''}${t.dist?' · '+esc(t.dist):''}</div>`;
+  topbox.classList.add('on'); setTimeout(()=>topbox.classList.remove('on'),7000); }
+setInterval(showTop,15000);
+function applyProg(){
+  const sofa=new Set(PROG.sofa||[]), top=new Set((PROG.top||[]).map(t=>t.id));
+  PLACES.forEach(p=>{ p.sofa=sofa.has(p.id); p.top=top.has(p.id); });
+  document.getElementById('s-all').textContent=PLACES.length;
+  document.getElementById('s-open').textContent=PLACES.filter(p=>p.open).length;
+  document.getElementById('s-sofa').textContent=PLACES.filter(p=>p.sofa).length;
+  document.getElementById('s-top').textContent=PLACES.filter(p=>p.top).length;
+  const L=PROG.log||[]; if(L.length>seenLog){ queueLog(L.slice(seenLog)); seenLog=L.length; }
+}
+async function loadData(){ try{ const d=await (await fetch('data.json?'+Date.now(),{cache:'no-store'})).json(); if(d.places&&d.places.length&&d.places.length!==PLACES.length){ PLACES=d.places.map((p,i)=>({...p,phase:i*1.7,hit:0})); document.getElementById('boot').remove?.(); resize(); applyProg(); } }catch(_){} }
+async function poll(){ try{ PROG=await (await fetch('progress.json?'+Date.now(),{cache:'no-store'})).json(); applyProg(); }catch(_){} }
+addEventListener('resize',resize); resize();
+loadData().then(poll); setInterval(()=>{ loadData(); poll(); },20000);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
